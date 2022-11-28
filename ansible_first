@@ -1,0 +1,81 @@
+---
+- hosts: all
+  gather_facts: no
+  become_user: idqansible
+  tasks:
+
+     - name: copying the file from one server to source
+       command:  scp PG_Oracle_LVM_clone-pre.sh idqansible@172.31.0.28:/home/idqansible
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       loop: "{{ groups['script_server'] }}"
+
+     - name: executing the pre bash scripts on source machines
+       command: sh /home/idqansible/PG_Oracle_LVM_clone-pre.sh
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       register: result_presource
+       loop: "{{ groups['webservers'] }}"
+
+     - name: copying the pre bash scripts from one server to destination
+       command: scp  PG_Oracle_LVM_clone-pre.sh idqansible@172.31.2.33:/home/idqansible
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       loop: "{{ groups['script_server'] }}"
+
+     - name: executing the pre scripts on destination  machines
+       command: sh /home/idqansible/PG_Oracle_LVM_clone-pre.sh
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       register: result_predest
+       loop: "{{ groups['webservers'] }}"
+
+     - name: copying the zip file from  source to destination
+       command: scp /tmp/Oracle_Automation_LVM-clone.zip idqansible@172.31.2.33:/home/idqansible
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       loop: "{{ groups['webservers'] }}"
+
+     - name: uarchiving the file on destination hosts
+       unarchive:
+         src: /home/idqansible/Oracle_Automation_LVM-clone.zip
+         dest: /home/idqansible
+         remote_src: yes
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       loop: "{{ groups['dbservers'] }}"
+
+
+     - name: copying the post scripts  from one server to source
+       command:  scp PG_Oracle_LVM_clone-post.sh  idqansible@172.31.0.28:/home/idqansible
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       loop: "{{ groups['script_server'] }}"
+
+     - name: executing the post scripts on source  machines
+       command: sh /home/idqansible/PG_Oracle_LVM_clone-post.sh
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       register: result_postsource
+       loop: "{{ groups['webservers'] }}"
+
+     - name: showing the output
+       debug:
+         var: result_presource.stdout
+
+     - name: copying the post  bash scripts  from one server to destination
+       command:  scp PG_Oracle_LVM_clone-post.sh  idqansible@172.31.2.33:/home/idqansible
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       loop: "{{ groups['script_server'] }}"
+
+     - name: executing the post bash scripts on destination  machines
+       command: sh /home/idqansible/PG_Oracle_LVM_clone-post.sh
+       delegate_to: "{{ item }}"
+       delegate_facts: true
+       register: result_postdest
+       loop: "{{ groups['dbservers'] }}"
+   
+     - name: printing the output of post bash script on destination
+       debug:
+         var: result_postdest.stdout
