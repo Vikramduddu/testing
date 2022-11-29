@@ -11,7 +11,9 @@
        loop: "{{ groups['script_server'] }}"
 
      - name: executing the pre bash scripts on source machines
-       command: sh /home/idqansible/PG_Oracle_LVM_clone-pre.sh
+       command: sh ./PG_Oracle_LVM_clone-pre.sh
+       args:
+          chdir: /home/idqansible
        delegate_to: "{{ item }}"
        delegate_facts: true
        register: result_presource
@@ -24,7 +26,9 @@
        loop: "{{ groups['script_server'] }}"
 
      - name: executing the pre scripts on destination  machines
-       command: sh /home/idqansible/PG_Oracle_LVM_clone-pre.sh
+       command: sh ./PG_Oracle_LVM_clone-pre.sh
+       args:
+         chdir: /home/idqansible
        delegate_to: "{{ item }}"
        delegate_facts: true
        register: result_predest
@@ -53,7 +57,9 @@
        loop: "{{ groups['script_server'] }}"
 
      - name: executing the post scripts on source  machines
-       command: sh /home/idqansible/PG_Oracle_LVM_clone-post.sh
+       command: sh ./PG_Oracle_LVM_clone-post.sh
+       args:
+         chdir: /home/idqansible
        delegate_to: "{{ item }}"
        delegate_facts: true
        register: result_postsource
@@ -70,7 +76,9 @@
        loop: "{{ groups['script_server'] }}"
 
      - name: executing the post bash scripts on destination  machines
-       command: sh /home/idqansible/PG_Oracle_LVM_clone-post.sh
+       command: sh ./PG_Oracle_LVM_clone-post.sh
+       args:
+         chdir: /home/idqansible
        delegate_to: "{{ item }}"
        delegate_facts: true
        register: result_postdest
